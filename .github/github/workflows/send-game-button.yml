@@ -1,0 +1,15 @@
+jobs:
+  send-button:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send game button to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ inputs.chat_id }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=Готовы сыграть в Пентагон?" \
+            --data-urlencode 'reply_markup={"inline_keyboard":[[{"text":"🎮 Я исповедуюсь. Загадка №1","url":"https://marruska.github.io/pentagon-game/"}]]}'
