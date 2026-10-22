@@ -1,38 +1,25 @@
-name: Find Telegram group ID
+name: Send Pentagon game button
 
 on:
   workflow_dispatch:
+    inputs:
+      chat_id:
+        description: "ID test Telegram group"
+        required: true
+        type: string
 
 jobs:
-  find-chat:
+  send-button:
     runs-on: ubuntu-latest
     steps:
-      - name: Find group ID
+      - name: Send game button to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ inputs.chat_id }}
         run: |
           curl --fail-with-body --silent --show-error \
-            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" \
-            -o response.json
-
-          python3 - <<'PY'
-          import json
-          with open("response.json") as f:
-              data = json.load(f)
-
-          if not data.get("ok"):
-              print("Telegram returned an error.")
-          elif not data.get("result"):
-              print("No updates found. The bot has no available messages.")
-          else:
-              found = False
-              for update in data["result"]:
-                  message = update.get("message", {})
-                  chat = message.get("chat", {})
-                  if chat.get("type") in ("group", "supergroup"):
-                      print("Chat ID:", chat["id"])
-                      print("Group:", chat.get("title", ""))
-                      found = True
-              if not found:
-                  print("Updates found, but no group messages were present.")
-          PY
+            -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=Готовы сыграть в Пентагон?" \
+            --data-urlencode 'reply_markup={"inline_keyboard":[[{"text":"🎮 Я исповедуюсь. Загадка №1","url":"https://marruska.github.io/pentagon-game/"}]]}'
