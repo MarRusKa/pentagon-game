@@ -11,5 +11,28 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" \
-          | python3 -c 'import json,sys; d=json.load(sys.stdin); [print("Chat ID:", m["chat"]["id"], "| Title:", m["chat"].get("title", "")) for u in d.get("result", []) for m in [u.get("message", {})] if m.get("chat", {}).get("type") in ("group", "supergroup")]'
+          curl --fail-with-body --silent --show-error \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" \
+            -o response.json
+
+          python3 - <<'PY'
+          import json
+          with open("response.json") as f:
+              data = json.load(f)
+
+          if not data.get("ok"):
+              print("Telegram returned an error.")
+          elif not data.get("result"):
+              print("No updates found. The bot has no available messages.")
+          else:
+              found = False
+              for update in data["result"]:
+                  message = update.get("message", {})
+                  chat = message.get("chat", {})
+                  if chat.get("type") in ("group", "supergroup"):
+                      print("Chat ID:", chat["id"])
+                      print("Group:", chat.get("title", ""))
+                      found = True
+              if not found:
+                  print("Updates found, but no group messages were present.")
+          PY
