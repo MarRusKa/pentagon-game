@@ -1,3 +1,13 @@
+name: Send Pentagon game button
+
+on:
+  workflow_dispatch:
+    inputs:
+      chat_id:
+        description: "ID test Telegram group"
+        required: true
+        type: string
+
 jobs:
   send-button:
     runs-on: ubuntu-latest
